@@ -1,0 +1,11 @@
+# depslib dependency file v1.0
+1491099095 source:c:\users\bombarga\google drive\ach2024\ep\src\main.cpp
+	<stdio.h>
+	<stdlib.h>
+	<conio.h>
+	<malloc.h>
+	<stddef.h>
+	<string.h>
+	<time.h>
+	<wchar.h>
+
