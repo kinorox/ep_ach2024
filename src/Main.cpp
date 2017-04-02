@@ -44,7 +44,7 @@ typedef struct {
 
 void entrarFila(fila* f, int ch) {
 
-    NO * novo;
+    NO* novo;
     novo = (NO*) malloc(sizeof(NO));
     novo->v = ch;
     novo->prox = null;
@@ -83,9 +83,13 @@ void zerarFlags(VERTICE* g, int nVertices) {
 
 }
 
-void largura(VERTICE* g, int i) {
+void procuraMenorDistancia(int* dist, VERTICE* g, int nVertices) {
 
-    zerarFlags(g);
+
+
+}
+
+void largura(VERTICE* g, int i) {
 
     fila f;
     inicializar(&f);
@@ -132,8 +136,6 @@ void inserirAresta(VERTICE* g, int i, int j, int peso) {
     printf("destino: %d\n", j);
     printf("peso: %d\n", peso);
 
-    //if(arestaExiste(g,i,j)) return;
-
     NO *novo = (NO*) malloc(sizeof(NO));
 
     novo->v = j;
@@ -150,6 +152,7 @@ VERTICE* criaGrafo(int nVertices, int *aberto) {
     for(int i = 1; i<= nVertices; i++) {
         g[i].inicio = null;
         g[i].aberto = aberto[i];
+        g[i].flag = 0;
     }
 
     return g;
@@ -170,9 +173,7 @@ NO *caminho(int N, int *ijpeso, int *aberto, int inicio, int fim, int chave)
 
 	int i = 0;
 	while(ijpeso[i]) {
-
         inserirAresta(g, ijpeso[i], ijpeso[i + 1], ijpeso[i + 2]);
-
         i = i + 3;
 	}
 
