@@ -10,6 +10,7 @@
 #include <string.h>
 #include <time.h>
 #include <wchar.h>
+#include <limits.h>
 #define null 0
 
 // ######### ESCREVA O NROUSP DO PRIMEIRO INTEGRANTE AQUI
@@ -83,30 +84,82 @@ void zerarFlags(VERTICE* g, int nVertices) {
 
 }
 
-void procuraMenorDistancia(int* dist, VERTICE* g, int nVertices) {
+int procuraMenorDistancia(int* dist, VERTICE* g, int nVertices) {
 
+    printf("procurando vertice mais proximo... \n");
 
+    int i, menor = -1, primeiro = 1;
+
+    for(i = 0; i<nVertices; i++) {
+
+        printf("i: %d \n", i);
+        printf("dist[i]: %d \n", dist[i]);
+        printf("g[i].flag: %d \n", g[i].flag);
+
+        if(dist[i] >= 0 && !g[i].flag) {
+
+            if(primeiro) {
+                menor = i;
+                primeiro = 0;
+            }else {
+                if(dist[menor] > dist[i])
+                    menor = i;
+            }
+
+        }
+
+    }
+
+    printf("vertice mais proximo e ainda nao visitado: %d\n", g[menor].inicio->v);
+
+    return menor;
 
 }
 
-void largura(VERTICE* g, int i) {
+int* createAndInitializeArrayDistancias(int nVertices) {
+
+    int* dist = (int*) malloc(nVertices * sizeof(int));
+    for(int j = 0; j<nVertices; j++) {
+        dist[j] = INT_MAX;
+    }
+
+    return dist;
+
+}
+
+int* dijkstra(VERTICE* g, int i, int nVertices) {
+
+    int* dist = createAndInitializeArrayDistancias(nVertices);
+
+    int shortestVertex = 0;
 
     fila f;
     inicializar(&f);
+    entrarFila(&f, i);
 
     g[i].flag = 1;
-    entrarFila(&f, i);
+    dist[i] = 0;
 
     while(f.inicio) {
 
         i = sairFila(&f);
-        NO * p = g[i].inicio;
+        printf("saindo da fila: %d\n", i);
+
+        NO* p = g[i].inicio;
+
         while (p){
 
-            if (g[p->v].flag == 0) {
-                entrarFila (&f, p->v);
-                g[p->v].flag = 1;
+            shortestVertex = procuraMenorDistancia(dist, g, nVertices);
+
+            printf("dist[shortestVertex]: %d\n", dist[shortestVertex]);
+            printf("p->peso + dist[shortestVertex]: %d\n", p->peso + dist[shortestVertex]);
+            printf("dist[i]: %d\n", dist[i]);
+
+            if(dist[shortestVertex] != INT_MAX && p->peso + dist[shortestVertex] < dist[i]) {
+                dist[i] = p->peso + dist[shortestVertex];
             }
+
+            entrarFila (&f, shortestVertex);
 
             p = p->prox;
 
@@ -115,9 +168,11 @@ void largura(VERTICE* g, int i) {
         g[i].flag = 2;
     }
 
+    return dist;
 }
 
 bool arestaExiste (VERTICE* g, int i, int j) {
+
     NO *p = g[i].inicio;
 
     while(p) {
@@ -127,6 +182,7 @@ bool arestaExiste (VERTICE* g, int i, int j) {
     }
 
     return false;
+
 }
 
 void inserirAresta(VERTICE* g, int i, int j, int peso) {
@@ -176,6 +232,8 @@ NO *caminho(int N, int *ijpeso, int *aberto, int inicio, int fim, int chave)
         inserirAresta(g, ijpeso[i], ijpeso[i + 1], ijpeso[i + 2]);
         i = i + 3;
 	}
+
+    int* dist = dijkstra(g, inicio, N);
 
 	return resp;
 }
