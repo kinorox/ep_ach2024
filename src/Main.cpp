@@ -76,13 +76,10 @@ void inicializar(fila* f) {
 
 }
 
-void zerarFlags(VERTICE* g) {
+void zerarFlags(VERTICE* g, int nVertices) {
 
-    NO *p = g[0].inicio;
-
-    while(p) {
-        p = p->prox;
-    }
+    for(int i=0; i<nVertices; i++)
+        g[i].flag = 0;
 
 }
 
@@ -130,7 +127,12 @@ bool arestaExiste (VERTICE* g, int i, int j) {
 
 void inserirAresta(VERTICE* g, int i, int j, int peso) {
 
-    if(arestaExiste(g,i,j)) return;
+    printf("inserindo nova aresta\n");
+    printf("origem: %d\n", i);
+    printf("destino: %d\n", j);
+    printf("peso: %d\n", peso);
+
+    //if(arestaExiste(g,i,j)) return;
 
     NO *novo = (NO*) malloc(sizeof(NO));
 
@@ -141,12 +143,13 @@ void inserirAresta(VERTICE* g, int i, int j, int peso) {
 
 }
 
-VERTICE* criaGrafo(int nVertices) {
+VERTICE* criaGrafo(int nVertices, int *aberto) {
 
     VERTICE* g = (VERTICE*) malloc(sizeof(VERTICE) * (nVertices + 1));
 
     for(int i = 1; i<= nVertices; i++) {
         g[i].inicio = null;
+        g[i].aberto = aberto[i];
     }
 
     return g;
@@ -163,15 +166,15 @@ NO *caminho(int N, int *ijpeso, int *aberto, int inicio, int fim, int chave)
 	NO* resp;
 	resp = NULL;
 
-	// seu codigo AQUI
+	VERTICE* g = criaGrafo(N, aberto);
 
-	VERTICE* g = criaGrafo(N);
+	int i = 0;
+	while(ijpeso[i]) {
 
-	for(int i = 0; i<sizeof(ijpeso); i + 3) {
         inserirAresta(g, ijpeso[i], ijpeso[i + 1], ijpeso[i + 2]);
-	}
 
-	//...
+        i = i + 3;
+	}
 
 	return resp;
 }
