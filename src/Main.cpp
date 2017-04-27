@@ -31,10 +31,8 @@ typedef struct estr {
 } NO;
 
 // vertices do grafo (salas) - use este tipo ao criar o grafo
-typedef struct
-{
+typedef struct {
     int flag; // para uso na busca em largura e profundidade, se necessario
-    bool aberto; // vale true se a sala em questao esta aberta
     NO* inicio;
 } VERTICE;
 
@@ -52,6 +50,19 @@ void entrarFila(fila* f, int ch) {
     if(f->fim) f->fim->prox = novo;
     else f->inicio = novo;
     f->fim = novo;
+
+}
+
+VERTICE* criaGrafo(int nVertices, int *aberto) {
+
+    VERTICE* g = (VERTICE*) malloc(sizeof(VERTICE) * (nVertices + 1));
+
+    for(int i = 1; i<= nVertices; i++) {
+        g[i].inicio = null;
+        g[i].flag = 0;
+    }
+
+    return g;
 
 }
 
@@ -84,105 +95,17 @@ void zerarFlags(VERTICE* g, int nVertices) {
 
 }
 
-int procuraMenorDistancia(int* dist, VERTICE* g, int nVertices) {
+int getMinVertex(int distances[], int visited[], int vertices){
+	int min = INT_MAX, index = -1, i;
 
-    printf("procurando vertice mais proximo... \n");
+	for (i = 1; i <= vertices; ++i) {
+		if (visited[i] == 0 && min > distances[i]) {
+			min = distances[i];
+			index = i;
+		}
+	}
 
-    int i, menor = -1, primeiro = 1;
-
-    for(i = 0; i<nVertices; i++) {
-
-        printf("i: %d \n", i);
-        printf("dist[i]: %d \n", dist[i]);
-        printf("g[i].flag: %d \n", g[i].flag);
-
-        if(dist[i] >= 0 && !g[i].flag) {
-
-            if(primeiro) {
-                menor = i;
-                primeiro = 0;
-            }else {
-                if(dist[menor] > dist[i])
-                    menor = i;
-            }
-
-        }
-
-    }
-
-    printf("vertice mais proximo e ainda nao visitado: %d\n", g[menor].inicio->v);
-
-    return menor;
-
-}
-
-int* createAndInitializeArrayDistancias(int nVertices) {
-
-    int* dist = (int*) malloc(nVertices * sizeof(int));
-    for(int j = 0; j<nVertices; j++) {
-        dist[j] = INT_MAX;
-    }
-
-    return dist;
-
-}
-
-int* dijkstra(VERTICE* g, int i, int nVertices) {
-
-    int* dist = createAndInitializeArrayDistancias(nVertices);
-
-    int shortestVertex = 0;
-
-    fila f;
-    inicializar(&f);
-    entrarFila(&f, i);
-
-    g[i].flag = 1;
-    dist[i] = 0;
-
-    while(f.inicio) {
-
-        i = sairFila(&f);
-        printf("saindo da fila: %d\n", i);
-
-        NO* p = g[i].inicio;
-
-        while (p){
-
-            shortestVertex = procuraMenorDistancia(dist, g, nVertices);
-
-            printf("dist[shortestVertex]: %d\n", dist[shortestVertex]);
-            printf("p->peso + dist[shortestVertex]: %d\n", p->peso + dist[shortestVertex]);
-            printf("dist[i]: %d\n", dist[i]);
-
-            if(dist[shortestVertex] != INT_MAX && p->peso + dist[shortestVertex] < dist[i]) {
-                dist[i] = p->peso + dist[shortestVertex];
-            }
-
-            entrarFila (&f, shortestVertex);
-
-            p = p->prox;
-
-        }
-
-        g[i].flag = 2;
-    }
-
-    return dist;
-}
-
-bool arestaExiste (VERTICE* g, int i, int j) {
-
-    NO *p = g[i].inicio;
-
-    while(p) {
-        if(p->v ==j) return true;
-
-        p = p->prox;
-    }
-
-    return false;
-
+	return index;
 }
 
 void inserirAresta(VERTICE* g, int i, int j, int peso) {
@@ -201,17 +124,79 @@ void inserirAresta(VERTICE* g, int i, int j, int peso) {
 
 }
 
-VERTICE* criaGrafo(int nVertices, int *aberto) {
+int* createAndInitializeArray(int nVertices) {
 
-    VERTICE* g = (VERTICE*) malloc(sizeof(VERTICE) * (nVertices + 1));
-
-    for(int i = 1; i<= nVertices; i++) {
-        g[i].inicio = null;
-        g[i].aberto = aberto[i];
-        g[i].flag = 0;
+    int* dist = (int*) malloc(nVertices * sizeof(int));
+    for(int j = 0; j<nVertices; j++) {
+        dist[j] = INT_MAX;
     }
 
-    return g;
+    return dist;
+
+}
+
+//TODO falta fazer o disjktra retornar um NO* com o caminho percorrido até chegar no destino
+int dijkstra(VERTICE* g, int startVertex, int fim, int vertices, int distances[], NO* caminho, int* aberto)
+{
+    int i, visited[vertices + 1];
+
+    // Initially no routes to vertices are know, so all are infinity
+    for (i = 1; i <= vertices; ++i) {
+        distances[i] = INT_MAX;
+        visited[i] = 0;
+    }
+
+    caminho = (NO*) malloc(sizeof(NO));
+
+    // Setting distance to source to zero
+    distances[startVertex] = 0;
+
+    for (i = 1; i <= vertices; ++i) {     // Untill there are vertices to be processed
+
+        int minVertex = getMinVertex(distances, visited, vertices);	// Greedily process the nearest vertex
+
+        printf("minVertex: %d \n", minVertex);
+
+		NO* trav = g[minVertex].inicio;    // Checking all the vertices adjacent to 'min'
+
+		visited[minVertex] = 1;
+
+        while (trav != NULL) {
+        	int u = minVertex;
+        	int v = trav->v;
+        	int w = trav->peso;
+
+            printf("u: %d \n", u);
+            printf("v: %d \n", v);
+            printf("w: %d \n", w);
+
+            if (distances[u] != INT_MAX && distances[v] > distances[u] + w) {
+
+                if(!aberto[u]) {
+                    return 1;
+                }
+
+                printf("Nova rota mais curta por um caminho aberto....");
+                distances[v] = distances[u] + w;
+
+                if(v == fim)
+                    return 0;
+            }
+
+            trav = trav->prox;
+        }
+    }
+
+    return 0;
+}
+
+void PrintCaminho(NO* caminho){
+
+    printf("printando caminho ... \n");
+
+    while(caminho != NULL){
+        printf("%d \n", caminho->v);
+    }
 
 }
 
@@ -220,20 +205,32 @@ VERTICE* criaGrafo(int nVertices, int *aberto) {
 // e outras funcoes auxiliares que esta
 // necessitar
 //------------------------------------------
-NO *caminho(int N, int *ijpeso, int *aberto, int inicio, int fim, int chave)
+NO *caminho(int N, int A, int *ijpeso, int *aberto, int inicio, int fim, int chave)
 {
-	NO* resp;
-	resp = NULL;
+    NO* resp;
 
 	VERTICE* g = criaGrafo(N, aberto);
 
-	int i = 0;
-	while(ijpeso[i]) {
+    for(int i=0; i<A; i = i+3)
         inserirAresta(g, ijpeso[i], ijpeso[i + 1], ijpeso[i + 2]);
-        i = i + 3;
-	}
 
-    int* dist = dijkstra(g, inicio, N);
+    int distances[N + 1];
+
+    //percorre o primeiro dijsktra até chegar na sala final ou até encontrar uma sala fechada
+    int passouPorSalaFechada = dijkstra(g, inicio, fim, N, distances, resp, aberto);
+
+    if(passouPorSalaFechada){ //passou por uma sala fechada no menor caminho encontrado
+
+        NO* caminhoAteChave;
+
+        dijkstra(g, inicio, chave, N, distances, caminhoAteChave, aberto); // calcula o menor caminho até a sala da chave
+
+        dijkstra(g, chave, fim, N, distances, resp, aberto); // calcula o menor caminho da sala da chave até a sala destino
+
+        //TODO
+        //computar os dois caminhos e retornar como resposta...
+
+    }
 
 	return resp;
 }
@@ -243,8 +240,9 @@ NO *caminho(int N, int *ijpeso, int *aberto, int inicio, int fim, int chave)
 //---------------------------------------------------------
 int main() {
 
+    int A = 9;
 	int N=3; // grafo de 3 vértices 1..3
-	int aberto[] = {1,1,1}; // todos abertos
+	int aberto[] = {0,0,0}; // todos abertos
 	int inicio=1;
 	int fim=3;
 	int chave=2;
@@ -252,7 +250,7 @@ int main() {
 
 	// o EP sera testado com uma serie de chamadas como esta
 	NO* teste = null;
-	teste = caminho(N, ijpeso, aberto, inicio, fim, chave);
+	teste = caminho(N, A, ijpeso, aberto, inicio, fim, chave);
 	return 1;
 
 }
